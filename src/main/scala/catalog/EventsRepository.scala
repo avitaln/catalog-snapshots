@@ -1,3 +1,5 @@
+package catalog
+
 import scala.collection.mutable
 
 /**
@@ -27,6 +29,7 @@ case class SetTitle(sid: String, pid: String, title: String, ver:Long = 0) exten
 }
 
 trait EventsRepository {
+  def clear() : Unit
   def insertEvent(e: CatalogEvent) : Unit
   def storeEvents(sid: String, fromVer: Long, toVer:Long) : Seq[CatalogEvent]
   def productEvents(sid: String, pid: String, fromVer: Long, toVer:Long) : Seq[CatalogEvent]
@@ -34,6 +37,8 @@ trait EventsRepository {
 
 class InMemoryEventsRepository extends EventsRepository {
   val events = new mutable.MutableList[CatalogEvent]
+
+  override def clear(): Unit = events.clear()
 
   val eventsFilter = (sid:String,minVer:Long,maxVer:Long,pid:String) =>
     (e:CatalogEvent) => isProductEvent(e,sid,minVer,maxVer,pid) || isCloneStore(e, sid)

@@ -1,7 +1,5 @@
-/**
- * Created by avitaln
- * 8/30/14
- */
+package utils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;

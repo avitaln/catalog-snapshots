@@ -1,6 +1,9 @@
+package utils
 
-import collection.JavaConversions.JConcurrentMapWrapper
-import java.util.{ concurrent => juc }
+
+import java.util.{concurrent => juc}
+
+import scala.collection.JavaConversions.JConcurrentMapWrapper
 
 /**
  * Scala Mutable concurrent HashMap

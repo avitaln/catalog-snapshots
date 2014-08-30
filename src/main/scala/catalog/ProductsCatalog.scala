@@ -1,3 +1,5 @@
+package catalog
+
 
 /**
  * Created by avitaln
@@ -28,7 +30,7 @@ case class StoreView(sid: String, sver: Long, products: Map[String,Product] = Ma
 
 ///////////////////////////////////////////////////////////////////////
 
-class MyCatalog(snapshotsRepo: SnapshotsRepository, versionsRepo: VersionsRepository, eventsRepo: EventsRepository) {
+class ProductsCatalog(snapshotsRepo: SnapshotsRepository, versionsRepo: VersionsRepository, eventsRepo: EventsRepository) {
 
   //  val events = new mutable.MutableList[CatalogEvent]
 

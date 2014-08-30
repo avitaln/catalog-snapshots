@@ -1,8 +1,11 @@
+package catalog
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
 import scala.collection.mutable
 
+import utils.MD5
 
 /**
  * Created by avitaln

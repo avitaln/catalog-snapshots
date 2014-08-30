@@ -1,3 +1,4 @@
+import catalog._
 import org.specs2.matcher.Scope
 import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationWithJUnit
@@ -18,7 +19,7 @@ class SnapshotsTest extends SpecificationWithJUnit with Mockito {
     lazy val snapshotsRepo = new InMemSnapshotsRepository
     lazy val versionsRepo = new InMemVersionsRepository
     lazy val eventsRepo : EventsRepository = new InMemoryEventsRepository
-    lazy val catalog = new MyCatalog(snapshotsRepo, versionsRepo, eventsRepo)
+    lazy val catalog = new ProductsCatalog(snapshotsRepo, versionsRepo, eventsRepo)
 
     def generateName() = "name" + (Random.nextInt(1000)+1)
     def generatePrice() = Random.nextLong()%1000+1
@@ -57,7 +58,7 @@ class SnapshotsTest extends SpecificationWithJUnit with Mockito {
       store.productIds must beEqualTo(productIds)
     }
 
-    def expectStoreWithFullProducts(sid: String, products: Map[String,Product]) = {
+    def expectStoreWithFullProducts(sid: String, products: Map[String,_root_.catalog.Product]) = {
       val sver = versionsRepo.getVersion(sid)
       val store = catalog.getStoreView(sid)
       store.sid must_== sid
@@ -152,18 +153,24 @@ class SnapshotsTest extends SpecificationWithJUnit with Mockito {
 
     ///////////////////////////////////////////////
 
-    "product snapshot" in new Context {
-      override lazy val eventsRepo = mock[EventsRepository]
-      val events = createProduct("s1","p1","name1",88)
-      eventsRepo.storeEvents("s1", 0,3) returns events
+    "product snaps hot with simple store" in new Context {
+      createProduct("s1","p1","name1",88)
       catalog.getStoreView("s1") // TODO find another way to create a snapshot
+      eventsRepo.clear()
+      expectProduct("s1","p1","name1",88)
+    }
 
-      // reset all calls so we can make sure events are not used
-      org.mockito.Mockito.reset(eventsRepo)
+    "product snaps hot with cloned store" in new Context {
+      createProduct("s1","p1","name1",88)
+      cloneStore("s2","s1")
+      createProduct("s2","p2","name2",99)
+      catalog.getStoreView("s1")
+      catalog.getStoreView("s2")
+      eventsRepo.clear()
 
       expectProduct("s1","p1","name1",88)
-      there was no(eventsRepo).productEvents(any,any,any,any)
-      there was no(eventsRepo).storeEvents(any,any,any)
+      expectProduct("s2","p1","name1",88)
+      expectProduct("s2","p2","name2",99)
     }
 
 

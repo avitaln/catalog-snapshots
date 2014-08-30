@@ -1,4 +1,8 @@
+package catalog
+
 import java.util.concurrent.atomic.AtomicLong
+
+import utils.ConcurrentHashMap
 
 /**
  * Created by avitaln
