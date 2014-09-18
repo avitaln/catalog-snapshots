@@ -1,41 +1,29 @@
 package option2
 
 /**
- * Created by avitaln
- * 9/16/14
- */
+* Created by avitaln
+* 9/16/14
+*/
 
 import domain._
 import own.Lenses._
 
-trait CatalogEventHandler[O] {
-  type Handler = PartialFunction[(O, CatalogEvent),O]
-
-  private[this] val nop: Handler = { case (o, _) => o }
-  private[this] var handlers: Seq[Handler] = Nil
-
-  def registerHandler(handler: Handler): Unit = handlers +:= handler
-
+class CatalogEventHandler[O](handlers: Seq[PartialFunction[(O, CatalogEvent),O]]) {
+  private[this] val nop : PartialFunction[(O, CatalogEvent),O] = { case (o, _) => o }
   lazy val handle = handlers.foldLeft(nop)((a, b) => b orElse a)
 }
 
-trait ProductCreatedHandler[O] extends CatalogEventHandler[O] {
-  val idLens : Lens[_,String]
-  
-  registerHandler { case (o, ProductCreated(id)) => lset(idLens, o, id)}
+object ProductCreatedHandler {
+  def func[O](idLens : Lens[O,String]) :PartialFunction[(O, CatalogEvent),O] = { case (o, ProductCreated(id)) => idLens.set(o, id)}
 }
 
-trait ProductNamedHandler[O] extends CatalogEventHandler[O] {
-  val nameLens : Lens[_,String]
-
-  registerHandler { case (o, ProductNamed(_, name)) => lset(nameLens, o, name)}
+object ProductNamedHandler {
+  def func[O](nameLens : Lens[O,String]) : PartialFunction[(O, CatalogEvent),O] = { case (o, ProductNamed(_, name)) => nameLens.set(o, name)}
 }
 
 
-trait ProductPricedHandler[O] extends CatalogEventHandler[O] {
-  val priceLens : Lens[_,Int]
-
-  registerHandler { case (o, ProductPriced(_, price)) => lset(priceLens, o, price)}
+object ProductPricedHandler {
+  def func[O](priceLens : Lens[O,Int]) : PartialFunction[(O, CatalogEvent),O]= { case (o, ProductPriced(_, price)) => priceLens.set(o, price)}
 }
 
 class CatalogEventPlayer[O](handler: CatalogEventHandler[O]) {
@@ -54,21 +42,20 @@ object EventPlayer2 extends App {
   val ProductView2_Id = Lens[ProductView2,String](_.id, (o, p) => o.copy(id = p))
   val ProductView2_Name = Lens[ProductView2,String](_.name, (o, p) => o.copy(name = p))
 
-  val lenses1 = new ProductCreatedHandler[ProductView1] with ProductNamedHandler[ProductView1] with ProductPricedHandler[ProductView1] {
-    val idLens = ProductView1_Id
-    val nameLens = ProductView1_Name
-    val priceLens = ProductView1_Price
-  }
-
-  val lenses2 = new ProductCreatedHandler[ProductView2] with ProductNamedHandler[ProductView2] {
-    val idLens = ProductView2_Id
-    val nameLens = ProductView2_Name
-  }
+  val handlers1 = Seq(
+    ProductCreatedHandler.func[ProductView1](ProductView1_Id),
+    ProductNamedHandler.func[ProductView1](ProductView1_Name),
+    ProductPricedHandler.func[ProductView1](ProductView1_Price)
+  )
+  val handlers2 = Seq(
+    ProductCreatedHandler.func[ProductView2](ProductView2_Id),
+    ProductNamedHandler.func[ProductView2](ProductView2_Name)
+  )
 
   val events = Seq[CatalogEvent](ProductCreated("some_id"), ProductNamed("some_id","some_name"), ProductPriced("some_id",88))
 
-  val p1 = new CatalogEventPlayer[ProductView1](lenses1).applyEvents(ProductView1(), events)
-  val p2 = new CatalogEventPlayer[ProductView2](lenses2).applyEvents(ProductView2(), events)
+  val p1 = new CatalogEventPlayer[ProductView1](new CatalogEventHandler(handlers1)).applyEvents(ProductView1(), events)
+  val p2 = new CatalogEventPlayer[ProductView2](new CatalogEventHandler(handlers2)).applyEvents(ProductView2(), events)
 
   println(p1)
   println(p2)

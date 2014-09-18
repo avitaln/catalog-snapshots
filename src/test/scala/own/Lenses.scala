@@ -14,10 +14,10 @@ object Lenses {
         lens1.set(o,
           lens2.set(lens1.get(o), v)))
 
-  def modify[O, V](lens: Lens[O, V], obj: O)(fn: V => V) =
-    lens.set(obj, fn(lens.get(obj)))
+//  def modify[O, V](lens: Lens[O, V], obj: O)(fn: V => V) =
+//    lens.set(obj, fn(lens.get(obj)))
 
-  def lset[O,V](l: Lens[_,V], o: O, v: V) : O = l.asInstanceOf[Lens[O,V]].set(o, v)
-
-  def lget[O,V](l: Lens[O,V], o: O) : V = l.get(o)
+//  def lset[O,V](l: Lens[_,V], o: O, v: V) : O = l.asInstanceOf[Lens[O,V]].set(o, v)
+//
+//  def lget[O,V](l: Lens[O,V], o: O) : V = l.get(o)
 }

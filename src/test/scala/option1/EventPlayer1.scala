@@ -20,22 +20,22 @@ trait CatalogEventHandler[O] {
 }
 
 trait ProductCreatedHandler[O] extends CatalogEventHandler[O] {
-  val idLens : Lens[_,String]
+  val idLens : Lens[O,String]
   
-  registerHandler { case (o, ProductCreated(id)) => lset(idLens, o, id)}
+  registerHandler { case (o, ProductCreated(id)) => idLens.set(o,id) }
 }
 
 trait ProductNamedHandler[O] extends CatalogEventHandler[O] {
-  val nameLens : Lens[_,String]
+  val nameLens : Lens[O,String]
 
-  registerHandler { case (o, ProductNamed(_, name)) => lset(nameLens, o, name)}
+  registerHandler { case (o, ProductNamed(_, name)) => nameLens.set(o, name) }
 }
 
 
 trait ProductPricedHandler[O] extends CatalogEventHandler[O] {
-  val priceLens : Lens[_,Int]
+  val priceLens : Lens[O,Int]
 
-  registerHandler { case (o, ProductPriced(_, price)) => lset(priceLens, o, price)}
+  registerHandler { case (o, ProductPriced(_, price)) => priceLens.set(o, price)}
 }
 
 class CatalogEventPlayer[O](handler: CatalogEventHandler[O]) {
@@ -54,21 +54,21 @@ object EventPlayer1 extends App {
   val ProductView2_Id = Lens[ProductView2,String](_.id, (o, p) => o.copy(id = p))
   val ProductView2_Name = Lens[ProductView2,String](_.name, (o, p) => o.copy(name = p))
 
-  val lenses1 = new ProductCreatedHandler[ProductView1] with ProductNamedHandler[ProductView1] with ProductPricedHandler[ProductView1] {
+  val handlers1 = new ProductCreatedHandler[ProductView1] with ProductNamedHandler[ProductView1] with ProductPricedHandler[ProductView1] {
     val idLens = ProductView1_Id
     val nameLens = ProductView1_Name
     val priceLens = ProductView1_Price
   }
 
-  val lenses2 = new ProductCreatedHandler[ProductView2] with ProductNamedHandler[ProductView2] {
+  val handlers2 = new ProductCreatedHandler[ProductView2] with ProductNamedHandler[ProductView2] {
     val idLens = ProductView2_Id
     val nameLens = ProductView2_Name
   }
 
-  val events = Seq[CatalogEvent](ProductCreated("some_id"), ProductNamed("some_id","some_name"), ProductPriced("some_id",88))
+  val events = Seq[CatalogEvent](ProductCreated("some_id"), ProductNamed("some_id","some_name"), ProductPriced("some_id",88), ProductNamed("some_id","some_other_name"))
 
-  val p1 = new CatalogEventPlayer[ProductView1](lenses1).applyEvents(ProductView1(), events)
-  val p2 = new CatalogEventPlayer[ProductView2](lenses2).applyEvents(ProductView2(), events)
+  val p1 = new CatalogEventPlayer[ProductView1](handlers1).applyEvents(ProductView1(), events)
+  val p2 = new CatalogEventPlayer[ProductView2](handlers2).applyEvents(ProductView2(), events)
 
   println(p1)
   println(p2)
